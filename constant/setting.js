@@ -5,6 +5,7 @@ export const DEFAULT_SETTINGS = {
   questionGenerationLength: 240,
   questionMaskRemovingProbability: 60,
   huggingfaceToken: '',
+  togetherApiKey: '',
   concurrencyLimit: 5,
   visionConcurrencyLimit: 5,
   // 多轮对话数据集默认配置
