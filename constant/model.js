@@ -73,6 +73,12 @@ export const MODEL_PROVIDERS = [
     name: '阿里云百炼',
     defaultEndpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     defaultModels: ['qwen-max-latest', 'qwen-max-2025-01-25']
+  },
+  {
+    id: 'claude-code',
+    name: 'Claude Code (Max)',
+    defaultEndpoint: '',
+    defaultModels: ['claude-opus-4-6', 'claude-sonnet-4-6']
   }
 ];
 

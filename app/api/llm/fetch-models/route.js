@@ -6,6 +6,14 @@ export async function POST(request) {
   try {
     const { endpoint, providerId, apiKey } = await request.json();
 
+    // Claude Code: lista statica di modelli, nessuna chiamata HTTP
+    if (providerId === 'claude-code') {
+      return NextResponse.json([
+        { modelId: 'claude-opus-4-6', modelName: 'Claude Opus 4.6', providerId: 'claude-code' },
+        { modelId: 'claude-sonnet-4-6', modelName: 'Claude Sonnet 4.6', providerId: 'claude-code' }
+      ]);
+    }
+
     if (!endpoint) {
       return NextResponse.json({ error: 'Missing required parameter: endpoint' }, { status: 400 });
     }
