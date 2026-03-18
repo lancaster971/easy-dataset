@@ -48,11 +48,13 @@
   "dependencies": {
     "@ai-sdk/openai": "^1.3.9",
     "@ai-sdk/openai-compatible": "^1.0.22",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.77",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@fontsource/inter": "^5.0.16",
     "@fontsource/jetbrains-mono": "^5.0.18",
     "@huggingface/hub": "^2.0.2",
+    "@langchain/core": "^1.1.33",
     "@lobehub/icons": "^1.96.0",
     "@mui/icons-material": "5.16.14",
     "@mui/lab": "5.0.0-alpha.175",
