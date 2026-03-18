@@ -657,6 +657,26 @@ export default function TaskSettings({ projectId }) {
           </Grid>
         </CardContent>
       </Card>
+      <Card style={{ marginBottom: 20 }}>
+        <CardContent>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom>
+                {t('settings.togetherAISettings')}
+              </Typography>
+              <TextField
+                fullWidth
+                label={t('settings.togetherApiKey')}
+                name="togetherApiKey"
+                value={taskSettings.togetherApiKey || ''}
+                onChange={handleSettingChange}
+                type="password"
+                helperText={t('settings.togetherApiKeyHelper')}
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
       <Snackbar
         open={success}
         autoHideDuration={2000}

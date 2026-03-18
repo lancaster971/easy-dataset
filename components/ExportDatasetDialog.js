@@ -7,6 +7,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Tabs, T
 import LocalExportTab from './export/LocalExportTab';
 import LlamaFactoryTab from './export/LlamaFactoryTab';
 import HuggingFaceTab from './export/HuggingFaceTab';
+import TogetherAITab from './export/TogetherAITab';
 
 const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
   const { t } = useTranslation();
@@ -153,6 +154,7 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
             <Tab label={t('export.localTab')} />
             <Tab label={t('export.llamaFactoryTab')} />
             <Tab label={t('export.huggingFaceTab')} />
+            <Tab label={t('export.togetherAITab')} />
           </Tabs>
         </Box>
 
@@ -214,6 +216,19 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
             customFields={customFields}
             handleSystemPromptChange={handleSystemPromptChange}
             handleReasoningLanguageChange={handleReasoningLanguageChange}
+            handleConfirmedOnlyChange={handleConfirmedOnlyChange}
+            handleIncludeCOTChange={handleIncludeCOTChange}
+          />
+        )}
+
+        {/* 第四个标签页：Together AI Fine-tuning */}
+        {currentTab === 3 && (
+          <TogetherAITab
+            projectId={projectId}
+            systemPrompt={systemPrompt}
+            confirmedOnly={confirmedOnly}
+            includeCOT={includeCOT}
+            handleSystemPromptChange={handleSystemPromptChange}
             handleConfirmedOnlyChange={handleConfirmedOnlyChange}
             handleIncludeCOTChange={handleIncludeCOTChange}
           />
