@@ -91,6 +91,10 @@ export default function ModelSettings({ projectId }) {
       return hasEndpoint && hasModel;
     }
 
+    if (providerId === 'claude-code') {
+      return hasModel;
+    }
+
     const hasApiKey = Boolean(String(model.apiKey || '').trim());
     return hasEndpoint && hasApiKey && hasModel;
   };
@@ -255,6 +259,43 @@ export default function ModelSettings({ projectId }) {
 
   const checkModelEndpointHealth = async (model, { silent = false } = {}) => {
     if (!model?.id) return false;
+
+    const providerId = String(model.providerId || '').toLowerCase();
+
+    // Claude Code: usa health check dedicato
+    if (providerId === 'claude-code') {
+      setHealthStatusMap(prev => ({
+        ...prev,
+        [model.id]: { status: 'checking', message: t('models.checking', { defaultValue: 'Checking...' }) }
+      }));
+      try {
+        const response = await axios.get('/api/llm/claude-code/health');
+        const isAvailable = response.data?.available === true;
+        setHealthStatusMap(prev => ({
+          ...prev,
+          [model.id]: {
+            status: isAvailable ? 'success' : 'error',
+            message: isAvailable
+              ? t('models.endpointHealthy', { defaultValue: 'Endpoint is healthy' })
+              : t('models.claudeCodeNotInstalled', { defaultValue: 'Claude Code CLI not installed' }),
+            checkedAt: Date.now()
+          }
+        }));
+        if (!silent) {
+          isAvailable
+            ? toast.success(t('models.endpointHealthy', { defaultValue: 'Endpoint is healthy' }))
+            : toast.error(t('models.claudeCodeNotInstalled', { defaultValue: 'Claude Code CLI not installed' }));
+        }
+        return isAvailable;
+      } catch (error) {
+        setHealthStatusMap(prev => ({
+          ...prev,
+          [model.id]: { status: 'error', message: 'Health check failed', checkedAt: Date.now() }
+        }));
+        if (!silent) toast.error('Health check failed');
+        return false;
+      }
+    }
 
     const endpoint = String(model.endpoint || '').trim();
     if (!endpoint) {
@@ -583,6 +624,12 @@ export default function ModelSettings({ projectId }) {
         color: 'success',
         text: t('models.localModel')
       };
+    } else if (providerId === 'claude-code') {
+      return {
+        icon: <CheckCircleIcon fontSize="small" />,
+        color: 'success',
+        text: t('models.claudeCodeLocal', { defaultValue: 'Claude Code (Local CLI)' })
+      };
     } else if (model.apiKey) {
       return {
         icon: <CheckCircleIcon fontSize="small" />,
@@ -602,9 +649,12 @@ export default function ModelSettings({ projectId }) {
     const modelStatus = getModelStatusInfo(model);
     const healthStatus = getHealthStatusInfo(model);
     const providerId = String(model?.providerId || '').toLowerCase();
-    const endpointLabel = `${formatEndpoint(model)}${
-      providerId !== 'ollama' && !model.apiKey ? ' (' + t('models.unconfiguredAPIKey') + ')' : ''
-    }`;
+    const endpointLabel =
+      providerId === 'claude-code'
+        ? t('models.claudeCodeLocal', { defaultValue: 'Claude Code (Local CLI)' })
+        : `${formatEndpoint(model)}${
+            providerId !== 'ollama' && !model.apiKey ? ' (' + t('models.unconfiguredAPIKey') + ')' : ''
+          }`;
 
     return (
       <Paper
@@ -868,29 +918,41 @@ export default function ModelSettings({ projectId }) {
                 />
               </FormControl>
             </Grid>
-            {/* 接口地址 */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('models.endpoint')}
-                name="endpoint"
-                value={modelConfigForm.endpoint}
-                onChange={handleModelFormChange}
-                placeholder="例如: https://api.openai.com/v1"
-              />
-            </Grid>
-            {/* API Key */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('models.apiKey')}
-                name="apiKey"
-                type="password"
-                value={modelConfigForm.apiKey}
-                onChange={handleModelFormChange}
-                placeholder="例如: sk-..."
-              />
-            </Grid>
+            {/* 接口地址 - nascosto per claude-code */}
+            {modelConfigForm.providerId !== 'claude-code' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label={t('models.endpoint')}
+                  name="endpoint"
+                  value={modelConfigForm.endpoint}
+                  onChange={handleModelFormChange}
+                  placeholder="例如: https://api.openai.com/v1"
+                />
+              </Grid>
+            )}
+            {/* API Key - nascosto per claude-code */}
+            {modelConfigForm.providerId !== 'claude-code' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label={t('models.apiKey')}
+                  name="apiKey"
+                  type="password"
+                  value={modelConfigForm.apiKey}
+                  onChange={handleModelFormChange}
+                  placeholder="例如: sk-..."
+                />
+              </Grid>
+            )}
+            {/* Descrizione per claude-code */}
+            {modelConfigForm.providerId === 'claude-code' && (
+              <Grid item xs={12}>
+                <Typography variant="body2" color="text.secondary" sx={{ p: 1, bgcolor: 'action.hover', borderRadius: 1 }}>
+                  {t('models.claudeCodeDescription', { defaultValue: 'Uses Claude Code CLI local authentication. Requires Claude Max subscription. No API key or endpoint needed.' })}
+                </Typography>
+              </Grid>
+            )}
             {/* 模型 ID */}
             <Grid item xs={12} style={{ display: 'flex', alignItems: 'center' }}>
               <FormControl style={{ width: '70%' }}>
@@ -1045,7 +1107,7 @@ export default function ModelSettings({ projectId }) {
           <Button
             onClick={handleSaveModel}
             variant="contained"
-            disabled={!modelConfigForm.providerId || !modelConfigForm.providerName || !modelConfigForm.endpoint}
+            disabled={!modelConfigForm.providerId || !modelConfigForm.providerName || (!modelConfigForm.endpoint && modelConfigForm.providerId !== 'claude-code')}
           >
             {t('common.save')}
           </Button>
