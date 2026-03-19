@@ -46,6 +46,28 @@ export async function GET(request, { params }) {
         insertModelConfigList.push(data);
       });
       modelConfigList = await createInitModelConfig(insertModelConfigList);
+    } else {
+      const existingProviderIds = new Set(modelConfigList.map(m => m.providerId));
+      const missingProviders = MODEL_PROVIDERS.filter(p => !existingProviderIds.has(p.id));
+      if (missingProviders.length > 0) {
+        const missingConfigs = missingProviders.map(item => ({
+          projectId: projectId,
+          providerId: item.id,
+          providerName: item.name,
+          endpoint: item.defaultEndpoint,
+          apiKey: '',
+          modelId: '',
+          modelName: '',
+          type: 'text',
+          temperature: DEFAULT_MODEL_SETTINGS.temperature,
+          maxTokens: DEFAULT_MODEL_SETTINGS.maxTokens,
+          topK: 0,
+          topP: DEFAULT_MODEL_SETTINGS.topP,
+          status: 1
+        }));
+        await createInitModelConfig(missingConfigs);
+        modelConfigList = await getModelConfigByProjectId(projectId);
+      }
     }
     modelConfigList = sortProvidersByPriority(modelConfigList, item => item.providerId);
     let project = await getProject(projectId);
